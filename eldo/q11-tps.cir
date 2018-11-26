@@ -1,0 +1,51 @@
+* Prova SEL0622 - Questao 11 - Sea of Gates - Porta logica NOT((NOT C)x(A + B))
+*                              Simulacao sobre layout com extracao C+CC
+* entradas: 
+*       - A, B, C
+*
+* saidas:
+*       - Q
+*
+* @author: Rodrigo Ferrari
+* @date: 11/01/18
+.option list
+.defmod NMOS4 MODN
+.defmod PMOS4 MODP
+
+* Usar modelo tipico de simulacao 'tm';
+* outros modelos: 'wp' e 'ws'
+.lib "/local/tools/dkit/ams_3.70_mgc/eldo/c35/wc53.lib" tm
+
+* Importar netlists e verificar ordem da definicao do subcircuito
+.include "../../cu.lib/default.group/layout.views/port/port.cal/port.pex.netlist"
+Xport VSS VDD C B A Q PORT
+
+.param vd=3v
+.param F1='1.0G'
+.param T1='1/F1'
+.param TDEL='0.1*T1'
+
+* tempo de simul
+.param ST='10*T1'
+.param STEP='0.5*T1'
+
+* circuito
+.connect VSS 0
+.connect B VSS
+.connect C VSS
+VDD_S VDD VSS vd
+Va A VSS PULSE(0 3 0 TDEL TDEL 'T1/2 - TDEL' T1)
+
+
+.op
+.tran 1 ST 0 STEP sweep F1 0.1G 1.00G  0.01G
+*.tran 1 ST 0 STEP
+.plot tran V(A) V(Q)
+
+* medidas
+.meas tran tu trig V(A) val='vd/2' fall=3 targ V(Q) val='vd/2' rise=3 
+.meas tran td trig V(A) val='vd/2' rise=4 targ V(Q) val='vd/2' fall=4
+.meas tran iavg avg Is(vdd_s)
+.meas tran power param='-iavg*vd'
+.meas tran cons param='((power/(1m))/(F1/(1G)))'
+.end

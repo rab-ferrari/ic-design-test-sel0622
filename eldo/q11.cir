@@ -1,0 +1,42 @@
+* Prova SEL0622 - Questao 11 - Sea of Gates - Porta logica NOT((NOT C)x(A + B))
+*                              Simulacao sobre layout com extracao C+CC
+* entradas: 
+*       - A, B, C
+*
+* saidas:
+*       - Q
+*
+* @author: Rodrigo Ferrari
+* @date: 11/01/18
+.option list
+.defmod NMOS4 MODN
+.defmod PMOS4 MODP
+
+* Usar modelo tipico de simulacao 'tm';
+* outros modelos: 'wp' e 'ws'
+.lib "/local/tools/dkit/ams_3.70_mgc/eldo/c35/wc53.lib" tm
+
+* Importar netlists e verificar ordem da definicao do subcircuito
+.include "../../cu.lib/default.group/layout.views/port/port.cal/port.pex.netlist"
+Xport VSS VDD C B A Q PORT
+
+.param vd=3v
+.param TDEL='0.5n'
+
+
+* tempo de simul
+.param ST='100n'
+.param STEP='0.5n'
+
+* circuito
+.connect VSS 0
+VDD_S VDD VSS vd
+Va A VSS PULSE(3 0 0 TDEL TDEL 'ST/8 - TDEL' 'ST/4')
+Vb B VSS PULSE(3 0 0 TDEL TDEL 'ST/4 - TDEL' 'ST/2')
+Vc C VSS PULSE(3 0 0 TDEL TDEL 'ST/2 - TDEL' 'ST')
+
+.op
+.tran 1 ST 0 STEP
+.plot tran V(A) V(B) V(C) V(Q)
+
+.end
