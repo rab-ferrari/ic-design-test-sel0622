@@ -1,0 +1,53 @@
+* Prova SEL0622 - Questao 7 - Simulacao sobre esquematico do Prescaler
+*
+* entradas: 
+*       - CLK : Pulso de clock de entrada
+*       - SM  : Controle da divisao
+*               SM = '0' ==> divisor 40
+*               SM = '1' ==> divisor 42
+* saidas:
+*       - SAI : Pulso de saida igual a CLK / 40 ou 42
+*
+* @author: Rodrigo Ferrari
+* @date: 11/01/18
+.option list
+.defmod NMOS4 MODN
+.defmod PMOS4 MODP
+
+* Usar modelo tipico de simulacao 'tm';
+* outros modelos: 'wp' e 'ws'
+.lib "/local/tools/dkit/ams_3.70_mgc/eldo/c35/wc53.lib" tm
+
+* Importar netlist
+.include "../../cu.lib/default.group/logic.views/prescaler4042/vpt_c35b4_device/prescaler4042_vpt_c35b4_device.spi"
+.param vd=3v
+.param F1='0.5G'
+.param T1='1/F1'
+.param TDEL='0.1*T1'
+
+* tempo de simul
+.param ST='220*T1'
+.param STEP='0.5*T1'
+
+* circuito
+.connect VSS 0
+VDD_S VDD VSS vd
+Vclk CLK VSS PULSE(0 3 0 TDEL TDEL 'T1/2 - TDEL' T1)
+Vsm SM VSS   PULSE(0 3 0 TDEL TDEL 'ST/2 - TDEL' ST)
+
+.op
+*.tran 1 ST 0 STEP sweep F1 DEC 1 10000k 10
+.tran 1 ST 0 STEP
+.plot tran V(CLK) V(SM) V(SAI)
+
+* medidas
+.meas tran ti trig V(CLK) val='vd/2' fall=50 targ v(CLK) val='vd/2' fall=51
+.meas tran to trig V(SAI) val='vd/2' fall=2  targ V(SAI) val='vd/2' fall=3
+
+.meas tran fi param='1/ti'
+.meas tran fo param='1/to'
+.meas tran div param='fi/fo'
+.meas tran iavg avg Is(vdd_s)
+.meas tran power param='-iavg*vd'
+.meas tran cons param='((power/(1m))/(F1/(1G)))'
+.end
